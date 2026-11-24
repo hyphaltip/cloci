@@ -108,8 +108,10 @@ def patch_main(phylo, omes, wrk_dir, old_path="pds.pickle", cpus=1):
     return omes2patch
 
 
-def obtain_missing_descendants(phylo, omes, omes2miss={}, cpus=1):
+def obtain_missing_descendants(phylo, omes, omes2miss=None, cpus=1):
     """Obtain the genomes that are missing from the descendants of a MRCA"""
+    if omes2miss is None:
+        omes2miss = {}
     clusOmes = set([tuple([str(x) for x in y]) for y in omes if y not in omes2miss])
     if clusOmes:
         with mp.Pool(processes=cpus) as pool:
@@ -223,9 +225,11 @@ def get_uniq_spp(db, iomes, i2ome):
 
 
 def calc_dists(
-    phylo, cooccur_dict, cpus=1, omes2dist={}, func=calc_tmd, uniq_sp=False, i2ome=None
+    phylo, cooccur_dict, cpus=1, omes2dist=None, func=calc_tmd, uniq_sp=False, i2ome=None
 ):
     # multiprocessing calculating only new distances for omes2dist
+    if omes2dist is None:
+        omes2dist = {}
     if uniq_sp:
         with mp.Pool(processes=cpus) as pool:
             results = pool.starmap(
@@ -258,9 +262,13 @@ def calc_dists(
 
 
 def update_dists(
-    phylo, cooccur_dict, cpus=1, omes2dist={}, func=calc_tmd, uniq_sp=[], i2ome=None
+    phylo, cooccur_dict, cpus=1, omes2dist=None, func=calc_tmd, uniq_sp=None, i2ome=None
 ):
     """update the omes2dist with a new set of distance calulations"""
+    if omes2dist is None:
+        omes2dist = {}
+    if uniq_sp is None:
+        uniq_sp = []
     results = calc_dists(
         phylo,
         cooccur_dict,
