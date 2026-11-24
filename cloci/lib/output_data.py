@@ -1215,6 +1215,8 @@ def write_ome_output(prefix, hlgs, out_dir, db, cpus, gene2hg):
 def annotation_mngr(
     hlg_genes, db, wrk_dir, pfam_path, ipr_path, gene2hg, out_dir, prefix="hlg", cpus=1
 ):
+    if not (pfam_path or ipr_path):
+        return  # no annotation database requested: nothing to annotate
     logger.info("\tSearching")
     prot_paths = {}
     for ome in hlg_genes:
