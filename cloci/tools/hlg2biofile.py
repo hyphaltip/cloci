@@ -38,7 +38,9 @@ def parse_hlgtsv(hlg_tsv):
     return hlg2omes, omes2hlg
 
 
-def parse_ome(ome, ome_file, hlgs=[]):
+def parse_ome(ome, ome_file, hlgs=None):
+    if hlgs is None:
+        hlgs = []
     hlg_set = set(hlgs)
 
     hlg2genes = defaultdict(list)
@@ -135,8 +137,8 @@ def main(
     db,
     clo_dir,
     out_dir,
-    omes=[],
-    hlgs=[],
+    omes=None,
+    hlgs=None,
     gcf_output=False,
     make_gbk=False,
     make_gff=False,
@@ -145,6 +147,10 @@ def main(
     cpus=1,
 ):
     """Generate a dictionary of the output file formats"""
+    if omes is None:
+        omes = []
+    if hlgs is None:
+        hlgs = []
 
     db = db.set_index("ome")
 

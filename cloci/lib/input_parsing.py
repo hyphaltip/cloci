@@ -14,7 +14,12 @@ from itertools import combinations
 from datetime import datetime
 from mycotools.acc2fa import dbmain as acc2fa
 from mycotools.lib.biotools import gff2list, dict2fa, fa2dict
-from mycotools.lib.kontools import format_path, collect_files, collect_dirs
+from mycotools.lib.kontools import (
+    format_path,
+    collect_files,
+    collect_dirs,
+    FatalError,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -678,8 +683,14 @@ def split_tree(tree, name):
     return left, right
 
 
-def root_tree(tree, outgroup=[], midpoint=False):
+class RootError(Exception):
+    """The tree could not be rooted with the supplied tips."""
+
+
+def root_tree(tree, outgroup=None, midpoint=False):
     """Root the tree based on outgroup(s)"""
+    if outgroup is None:
+        outgroup = []
     if midpoint:
         # root at the midpoint
         return tree.root_at_midpoint()
@@ -693,7 +704,7 @@ def root_tree(tree, outgroup=[], midpoint=False):
             return tree.rooted_with_tip(outgroup).bifurcating()
         else:
             return tree
-    elif len(outgroup > 2):
+    elif len(outgroup) > 2:
         raise RootError(
                 f"can only root using two tips"
             )
@@ -704,16 +715,18 @@ def root_tree(tree, outgroup=[], midpoint=False):
         left, reft = split_tree(tree, mrca.name)
         try:
             return type(tree)(name="root", children=[left, reft])
-        except:
+        except Exception as e:
             raise RootError(
                 f"tree could not be rooted with supplied tips: " + f"{outgroup}"
-            )
+            ) from e
 
 
-def compile_tree(i2ome, tree_path, root=[]):
+def compile_tree(i2ome, tree_path, root=None):
     #    with open(tree_path, 'r') as raw:
     #       nwk = raw.read()
 
+    if root is None:
+        root = []
     phylo = load_tree(tree_path)
     phylo.name_unnamed_nodes()
     omes = set(i2ome)
@@ -734,9 +747,9 @@ def compile_tree(i2ome, tree_path, root=[]):
     if isinstance(root, list):
         try:
             phylo = root_tree(phylo, outgroup=root)
-        except:
+        except Exception as e:
             logger.error(f"tree could not be rooted with supplied tips: " + f"{root}")
-            sys.exit(449)
+            raise FatalError(f"tree could not be rooted with supplied tips: {root}", 449) from e
         phylo.write(tree_path, with_distances=True)
     else:
         phylo = root_tree(phylo, midpoint=True)
@@ -882,7 +895,7 @@ def hg_fa_mngr(wrk_dir, hg_dir, hgs, db, hg2gene, cpus=1, low_mem=False):
         try:
             os.symlink(hg_fa_cmds[0][0], hg_fa_cmds[0][1])
             del hg_fa_cmds[0]
-        except:
+        except Exception:
             copy_hgs = True
 
         if copy_hgs:

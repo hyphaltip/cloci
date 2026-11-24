@@ -4,16 +4,27 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cloci"
-version = "0.4.0"
+# PEP 440 local version: upstream 0.4.0 plus hyphaltip fork changes (-> 0.4.0+hyphaltip.1)
+version = "0.4.0+hyphaltip.1"
 authors = [{name="Zachary Konkel", email="konkelzach@protonmail.com"}]
 description = "Co-occurrence Locus and Orthologous Cluster Identifier"
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = '>=3.0,<4'
-dependencies = ['mycotools', 'cogent3', 'tqdm', 'plotly']
+requires-python = '>=3.10'
+# graph_tool (hg2hg_net, hlg2hlg_net) is not on PyPI: install it with conda/pixi.
+dependencies = [
+    'mycotools',
+    'cogent3==2025.5.8a10',
+    'numpy',
+    'scipy',
+    'matplotlib',
+    'numba',
+    'tqdm',
+    'plotly',
+]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: POSIX :: Linux",
 ]
 

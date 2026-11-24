@@ -94,8 +94,10 @@ def form_cooccur_dict(cooccur_dict):
     return i2hgx, hgx2i, cooccur_dict
 
 
-def gen_null_dict_omes(db, i2ome, combo_dict, sample=10000, omes=[]):
+def gen_null_dict_omes(db, i2ome, combo_dict, sample=10000, omes=None):
     """combo_dict = {ome: [(OG0...OGn)]}"""
+    if omes is None:
+        omes = []
 
     # make a list of observed HGx combinations
     nulls = []
@@ -194,13 +196,15 @@ def gen_nulls(
     i2ome,
     pairs,
     phylo,
-    omes=[],
+    omes=None,
     samples=10000,
     uniq_sp=False,
     dist_func=treecalcs.calc_tmd,
     cpus=1,
 ):
     """pairs = {ome: [(OG0,OG1)...]}"""
+    if omes is None:
+        omes = []
 
     null_dict, reps = gen_null_dict_omes(db, i2ome, pairs, samples, omes=omes)
     oldLen = len(null_dict)
@@ -373,8 +377,8 @@ def gen_hgx_nulls(
     clus_perc,
     nul_dir,
     partition_omes,
-    omes2dist={},
-    skip_i={},
+    omes2dist=None,
+    skip_i=None,
     samples=10000,
     dist_func=treecalcs.calc_tmd,
     uniq_sp=False,
@@ -385,6 +389,10 @@ def gen_hgx_nulls(
     size as the minimum value for significance.
     Outputs a dictionary of the minimum values for each size HGx
     based on the inputted percentiles. {# of OGs: minimum value}"""
+    if omes2dist is None:
+        omes2dist = {}
+    if skip_i is None:
+        skip_i = {}
 
     # hashRes = [({size: [HGx]})...] by ome
     logger.info("\tCalculating random sample TMD")

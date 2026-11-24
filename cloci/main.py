@@ -39,6 +39,7 @@ from itertools import chain
 from datetime import datetime
 from collections import defaultdict
 from mycotools.lib.kontools import (
+    exit_on_fatal,
     intro,
     outro,
     format_path,
@@ -968,6 +969,7 @@ def gen_mtdb(predb_path, out_dir, cpus=1):
     return db_path
 
 
+@exit_on_fatal
 def cli():
     # need these here because spawn mp context forces reimport
     #    from scipy.stats import hypergeom
