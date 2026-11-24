@@ -722,11 +722,10 @@ def root_tree(tree, outgroup=None, midpoint=False):
 
 
 def compile_tree(i2ome, tree_path, root=None):
+    # root=None means no outgroup was requested: root at the midpoint
     #    with open(tree_path, 'r') as raw:
     #       nwk = raw.read()
 
-    if root is None:
-        root = []
     phylo = load_tree(tree_path)
     phylo.name_unnamed_nodes()
     omes = set(i2ome)
