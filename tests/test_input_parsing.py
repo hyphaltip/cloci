@@ -54,3 +54,15 @@ def test_compile_tree_outgroup_list_roots(tmp_path):
     make_tree("((a:1,b:1):1,(c:1,d:1):1,e:1);").write(str(path))
     phylo = compile_tree(["a", "b", "c", "d", "e"], str(path), root=["a", "b"])
     assert len(phylo.get_tip_names()) == 5
+
+
+def test_compile_tree_empty_root_list_uses_midpoint(tmp_path):
+    """cloci.main passes root=[] when --root is absent (documented default: midpoint)."""
+    from cogent3 import make_tree
+
+    from cloci.lib.input_parsing import compile_tree
+
+    path = tmp_path / "t.newick"
+    make_tree("((a:1,b:1):1,(c:1,d:1):1,e:1);").write(str(path))
+    phylo = compile_tree(["a", "b", "c", "d", "e"], str(path), root=[])
+    assert set(phylo.get_tip_names()) == {"0", "1", "2", "3", "4"}

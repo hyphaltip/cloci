@@ -722,7 +722,7 @@ def root_tree(tree, outgroup=None, midpoint=False):
 
 
 def compile_tree(i2ome, tree_path, root=None):
-    # root=None means no outgroup was requested: root at the midpoint
+    # root: outgroup tip(s); empty or None (no --root) roots at the midpoint
     #    with open(tree_path, 'r') as raw:
     #       nwk = raw.read()
 
@@ -743,7 +743,7 @@ def compile_tree(i2ome, tree_path, root=None):
             n.parent.remove(n)
             phylo.prune()
 
-    if isinstance(root, list):
+    if root:  # outgroup tip(s) supplied; an empty list or None means midpoint
         try:
             phylo = root_tree(phylo, outgroup=root)
         except Exception as e:
