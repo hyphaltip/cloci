@@ -247,13 +247,17 @@ def make_network(
     img,
     annotate=False,
     font_size=20,
-    locI2color={},
-    locI2name={},
+    locI2color=None,
+    locI2name=None,
     scale=1,
     prefix=None,
     bcentrality=False,
     binary=False,
 ):
+    if locI2color is None:
+        locI2color = {}
+    if locI2name is None:
+        locI2name = {}
     logger.info("\tLoading adjacency matrix")
     g = Graph(directed=False)
     idx = adj_arr.nonzero()
@@ -480,17 +484,21 @@ def main(
     img=True,
     annotate_loc=False,
     annotate_hlg=False,
-    highlight=set(),
+    highlight=None,
     scale=0.25,
     chrono=False,
     font_size=20,
-    colors=[],
+    colors=None,
     func_dir=None,
     ex_omes=None,
     out_prefix=None,
     binary=False,
     bcentrality=False,
 ):
+    if highlight is None:
+        highlight = set()
+    if colors is None:
+        colors = []
     net_dir = res_dir + "net/"
     if not os.path.isdir(net_dir):
         os.mkdir(net_dir)

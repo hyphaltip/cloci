@@ -595,9 +595,11 @@ def ann_mngr(
 
 
 def annotate_clusters(
-    genes_list, ome, ome_dir, gene2hg, prefix="hlg", ann_res={}  # gff_path, prot_path,
+    genes_list, ome, ome_dir, gene2hg, prefix="hlg", ann_res=None  # gff_path, prot_path,
 ):
 
+    if ann_res is None:
+        ann_res = {}
     if not os.path.isfile(f"{ome_dir}{ome}/{prefix}.tsv"):
         return
 
@@ -1287,10 +1289,12 @@ def output_hlgs(
     csb_thresh,
     ipr_path=None,
     pfam_path=None,
-    dnds_dict={},
+    dnds_dict=None,
     cpus=1,
 ):
 
+    if dnds_dict is None:
+        dnds_dict = {}
     logger.info("\tWriting cluster scores")
 
     logg2d = calc_logg2d(hlg_omes, omes2dist)

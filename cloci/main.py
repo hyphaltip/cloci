@@ -272,7 +272,7 @@ def main(
     skipalgn=False,
     flag=True,
     partition_file=None,
-    near_single_copy_genes=[],
+    near_single_copy_genes=None,
     tree_path=None,
     verbose=False,
     sim="overlap",
@@ -300,6 +300,8 @@ def main(
     GCL calculation -> optional dN/dS calculations (deprecated) ->
     HGx data output -> cluster retrieving -> data output
     """
+    if near_single_copy_genes is None:
+        near_single_copy_genes = []
     db = db.set_index()
     if uniq_sp:
         uniq_sp = db

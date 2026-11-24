@@ -1708,8 +1708,10 @@ def extend_loci(
     forbid_genes,
     ext_len=1,
     min_new_cont=2,
-    announcements={87332},
+    announcements=None,
 ):
+    if announcements is None:
+        announcements = {87332}
     forbidden_genes = set(forbid_genes)
     scaf2gene2i, cds_dict = parse_and_sort_gff(gff_path)
 
@@ -1942,7 +1944,7 @@ def classify_hlgs(
     ome2partition,
     bord_scores_list,
     hg2gene,
-    omes2dist={},
+    omes2dist=None,
     clusplusminus=3,
     inflation_1=1.1,
     inflation_2=1.5,
@@ -1965,6 +1967,8 @@ def classify_hlgs(
     max_between=2,
 ):
 
+    if omes2dist is None:
+        omes2dist = {}
     i2ome = {v: k for k, v in ome2i.items()}
 
     if not checkdir(hgx_dir, unzip=True, rm=True):

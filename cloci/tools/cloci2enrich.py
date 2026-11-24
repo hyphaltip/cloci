@@ -461,12 +461,14 @@ def main(
     out_dir,
     pfam2go_path,
     go_file,
-    go_terms=[],
+    go_terms=None,
     top_hit=True,
     pool=mp.Pool(processes=1),
     minimum=0,
 ):
 
+    if go_terms is None:
+        go_terms = []
     db = db.set_index()
     ranks = defaultdict(list)
     for ome, row in db.items():

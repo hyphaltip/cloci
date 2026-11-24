@@ -1174,7 +1174,7 @@ def gcl_main(
     hlgs=None,
     hlg_hgxs=None,
     hlg_omes=None,
-    hlg2clan={},
+    hlg2clan=None,
     cpus=1,
     printexit=False,
     algn_sens="",
@@ -1184,6 +1184,8 @@ def gcl_main(
 ):
     """The main function for controlling and executing the management of
     running GCL, MMI, MMP, and CSB quantitation"""
+    if hlg2clan is None:
+        hlg2clan = {}
 
     # determine if the hgx directory exists, and unzip if necessary
     if not checkdir(hgx_dir, unzip=True, rm=True):

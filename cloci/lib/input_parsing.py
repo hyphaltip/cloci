@@ -711,7 +711,7 @@ def root_tree(tree, outgroup=None, midpoint=False):
     else:
         # root by determining the MRCA branch as the MRCA that contains as few tips as possible
         # while including those delineated in the outgroup list
-        mrca = tree.get_connecting_node(outgroup)
+        mrca = tree.get_connecting_node(*outgroup)
         left, reft = split_tree(tree, mrca.name)
         try:
             return type(tree)(name="root", children=[left, reft])
