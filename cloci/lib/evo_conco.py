@@ -1,4 +1,6 @@
 import os
+import shutil
+import tempfile
 import sys
 import pickle
 import logging
@@ -623,9 +625,15 @@ def prep_blast_cmds(
     hg2gene=None,
     cpus=1,
     rerun=False,
+    threads=1,
+    db_dir=None,
 ):
     """Prepare commands for self-aligning HGs based on the inputted
-    algorithm"""
+    algorithm. `threads` is the thread count for each diamond call; `db_dir`
+    is where diamond databases go (default `hgx_dir`; node-local scratch is
+    faster, and the databases are not read by any later step)."""
+    if db_dir is None:
+        db_dir = hgx_dir
     missing_alns = find_missing_algns(hgs, hgx_dir)
 
     # if failed runs are not to be rerun
@@ -636,7 +644,7 @@ def prep_blast_cmds(
     # prepare diamond commands
     if os.path.basename(algorithm) == "diamond":
         dmnd_dbs = set(
-            [int(os.path.basename(x[:-5])) for x in collect_files(hgx_dir, "dmnd")]
+            [int(os.path.basename(x[:-5])) for x in collect_files(db_dir, "dmnd")]
         )
         missing_dmnds = set(missing_alns).difference(dmnd_dbs)
         cmds1 = [
@@ -644,11 +652,11 @@ def prep_blast_cmds(
                 algorithm,
                 "makedb",
                 "--db",
-                f"{hgx_dir}{hg}.dmnd",
+                f"{db_dir}{hg}.dmnd",
                 "--in",
                 f"{hg_dir}{hg}.faa",
                 "--threads",
-                "2",
+                str(threads),
             )
             for hg in missing_dmnds
         ]
@@ -661,7 +669,7 @@ def prep_blast_cmds(
                         "--query",
                         f"{hg_dir}{hg}.faa",
                         "--db",
-                        f"{hgx_dir}{hg}.dmnd",
+                        f"{db_dir}{hg}.dmnd",
                         "-o",
                         f"{hgx_dir}{hg}.out.tmp",
                         "--outfmt",
@@ -671,7 +679,7 @@ def prep_blast_cmds(
                         "ppos",
                         "pident",
                         "--threads",
-                        "2",
+                        str(threads),
                         "--id",
                         str(minid),
                         "--ultra-sensitive",
@@ -693,7 +701,7 @@ def prep_blast_cmds(
                         "--query",
                         f"{hg_dir}{hg}.faa",
                         "--db",
-                        f"{hgx_dir}{hg}.dmnd",
+                        f"{db_dir}{hg}.dmnd",
                         "-o",
                         f"{hgx_dir}{hg}.out.tmp",
                         "--outfmt",
@@ -703,7 +711,7 @@ def prep_blast_cmds(
                         "ppos",
                         "pident",
                         "--threads",
-                        "2",
+                        str(threads),
                         "--id",
                         str(minid),
                         "--max-target-seqs",
@@ -827,7 +835,7 @@ def prep_blast_cmds(
     return cmds1, cmds2
 
 
-def run_blast(
+def _run_blast(
     hgs,
     db,
     hg_dir,
@@ -840,6 +848,8 @@ def run_blast(
     fallback=False,
     minid=30,
     cpus=1,
+    db_dir=None,
+    diamond_threads=1,
 ):
     """Run HG self-alignment commands"""
     #    hgs = sorted(set(chain(*list(hgx2loc.keys()))))
@@ -854,6 +864,8 @@ def run_blast(
         sensitivity=sensitivity,
         hg2gene=hg2gene,
         cpus=cpus,
+        threads=diamond_threads,
+        db_dir=db_dir,
     )
     if algn_cmds:
         # make the databases if necessary (Diamond)
@@ -927,6 +939,8 @@ def run_blast(
             sensitivity=None,
             hg2gene=hg2gene,
             cpus=cpus,
+            threads=diamond_threads,
+            db_dir=db_dir,
         )
         if db_cmds:
             logger.info(f"\tBuilding {len(db_cmds)} diamond DBs")
@@ -938,6 +952,55 @@ def run_blast(
     # finally, output the failed alignments for future reruns to reference
     with open(hgx_dir + "failed.txt", "w") as out:
         out.write("\n".join([str(x) for x in missing_alns]))
+
+
+
+def run_blast(
+    hgs,
+    db,
+    hg_dir,
+    hgx_dir,
+    algorithm="diamond",
+    printexit=False,
+    sensitivity="",
+    hg2gene=None,
+    skipalgn=False,
+    fallback=False,
+    minid=30,
+    cpus=1,
+    diamond_threads=1,
+):
+    """Run HG self-alignment commands. Diamond databases are built on
+    node-local `$SCRATCH` when it is set (and removed afterwards); otherwise,
+    and when the commands are only printed or alignments skipped, they go in
+    `hgx_dir` as before."""
+    scratch = os.environ.get("SCRATCH")
+    scratch_dir = None
+    db_dir = hgx_dir
+    if algorithm == "diamond" and not printexit and not skipalgn and scratch and os.path.isdir(scratch):
+        scratch_dir = tempfile.mkdtemp(prefix="cloci_dmnd_", dir=scratch)
+        db_dir = scratch_dir + "/"
+        logger.info(f"\tDiamond databases on node-local scratch: {db_dir}")
+    try:
+        _run_blast(
+            hgs,
+            db,
+            hg_dir,
+            hgx_dir,
+            algorithm=algorithm,
+            printexit=printexit,
+            sensitivity=sensitivity,
+            hg2gene=hg2gene,
+            skipalgn=skipalgn,
+            fallback=fallback,
+            minid=minid,
+            cpus=cpus,
+            db_dir=db_dir,
+            diamond_threads=diamond_threads,
+        )
+    finally:
+        if scratch_dir:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
 
 
 def hg_parse_and_apds(hg, hg_dict, hgx_dir, hlg2miss):
